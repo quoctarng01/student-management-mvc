@@ -172,7 +172,36 @@
                 ➕ Add New Student
             </a>
         </div>
-        
+
+        <!-- 🔍 Search Form -->
+        <div class="search-box" style="margin-bottom: 20px;">
+            <form action="student" method="get" style="display: flex; gap: 10px; align-items: center;">
+                <input type="hidden" name="action" value="search">
+
+                <input 
+                    type="text" 
+                    name="keyword" 
+                    placeholder="Search by name, code, or email..." 
+                    value="${keyword}"
+                    style="padding: 10px; width: 250px; border-radius: 5px; border: 1px solid #ccc;"
+                >
+
+                <button type="submit" class="btn btn-primary">🔍 Search</button>
+
+                <!-- Clear button appears only when searching -->
+                <c:if test="${not empty keyword}">
+                    <a href="student?action=list" class="btn btn-secondary">Clear</a>
+                </c:if>
+            </form>
+        </div>
+
+        <!-- Show search results message -->
+        <c:if test="${not empty keyword}">
+            <p style="margin-bottom: 15px; font-style: italic; color: #333;">
+                🔎 Search results for: <strong>${keyword}</strong>
+            </p>
+        </c:if>
+
         <!-- Student Table -->
         <c:choose>
             <c:when test="${not empty students}">
@@ -216,10 +245,111 @@
                 <div class="empty-state">
                     <div class="empty-state-icon">📭</div>
                     <h3>No students found</h3>
-                    <p>Start by adding a new student</p>
+                    <p>Try a different search or add a new student.</p>
                 </div>
             </c:otherwise>
         </c:choose>
+            <!-- Filter by Major -->
+    <div class="filter-box" style="margin-bottom: 15px;">
+        <form action="student" method="get" style="display: flex; align-items: center; gap: 10px;">
+            <input type="hidden" name="action" value="filter">
+            <label>Filter by Major:</label>
+            <select name="major">
+                <option value="">All Majors</option>
+                <option value="Computer Science" ${majorFilter == 'Computer Science' ? 'selected' : ''}>Computer Science</option>
+                <option value="Information Technology" ${majorFilter == 'Information Technology' ? 'selected' : ''}>Information Technology</option>
+                <option value="Software Engineering" ${majorFilter == 'Software Engineering' ? 'selected' : ''}>Software Engineering</option>
+                <option value="Business Administration" ${majorFilter == 'Business Administration' ? 'selected' : ''}>Business Administration</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Apply Filter</button>
+            <c:if test="${not empty majorFilter}">
+                <a href="student?action=list" class="btn btn-secondary">Clear Filter</a>
+            </c:if>
+        </form>
+    </div>
+
+    <!-- Student Table -->
+    <c:choose>
+        <c:when test="${not empty students}">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <a href="student?action=sort&sortBy=id&order=${sortBy=='id' && order=='asc' ? 'desc' : 'asc'}">
+                                ID
+                                <c:if test="${sortBy == 'id'}">
+                                    ${order=='asc' ? '▲' : '▼'}
+                                </c:if>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="student?action=sort&sortBy=student_code&order=${sortBy=='student_code' && order=='asc' ? 'desc' : 'asc'}">
+                                Code
+                                <c:if test="${sortBy == 'student_code'}">
+                                    ${order=='asc' ? '▲' : '▼'}
+                                </c:if>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="student?action=sort&sortBy=full_name&order=${sortBy=='full_name' && order=='asc' ? 'desc' : 'asc'}">
+                                Name
+                                <c:if test="${sortBy == 'full_name'}">
+                                    ${order=='asc' ? '▲' : '▼'}
+                                </c:if>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="student?action=sort&sortBy=email&order=${sortBy=='email' && order=='asc' ? 'desc' : 'asc'}">
+                                Email
+                                <c:if test="${sortBy == 'email'}">
+                                    ${order=='asc' ? '▲' : '▼'}
+                                </c:if>
+                            </a>
+                        </th>
+                        <th>
+                            <a href="student?action=sort&sortBy=major&order=${sortBy=='major' && order=='asc' ? 'desc' : 'asc'}">
+                                Major
+                                <c:if test="${sortBy == 'major'}">
+                                    ${order=='asc' ? '▲' : '▼'}
+                                </c:if>
+                            </a>
+                        </th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <c:forEach var="student" items="${students}">
+                        <tr>
+                            <td>${student.id}</td>
+                            <td><strong>${student.studentCode}</strong></td>
+                            <td>${student.fullName}</td>
+                            <td>${student.email}</td>
+                            <td>${student.major}</td>
+                            <td>
+                                <div class="actions">
+                                    <a href="student?action=edit&id=${student.id}" class="btn btn-secondary">✏️ Edit</a>
+                                    <a href="student?action=delete&id=${student.id}" 
+                                       class="btn btn-danger"
+                                       onclick="return confirm('Are you sure you want to delete this student?')">
+                                        🗑️ Delete
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    </c:forEach>
+                </tbody>
+            </table>
+        </c:when>
+        <c:otherwise>
+            <div class="empty-state">
+                <div class="empty-state-icon">📭</div>
+                <h3>No students found</h3>
+                <p>Start by adding a new student</p>
+            </div>
+        </c:otherwise>
+    </c:choose>
+    <a href="export" class="btn btn-primary" style="margin-bottom:15px;">📥 Export to Excel</a>
+
     </div>
 </body>
 </html>

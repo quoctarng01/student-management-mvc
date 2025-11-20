@@ -17,7 +17,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -27,7 +27,7 @@
             align-items: center;
             padding: 20px;
         }
-        
+
         .container {
             background: white;
             border-radius: 10px;
@@ -36,18 +36,18 @@
             width: 100%;
             max-width: 600px;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
             font-size: 28px;
             text-align: center;
         }
-        
+
         .form-group {
             margin-bottom: 25px;
         }
-        
+
         label {
             display: block;
             margin-bottom: 8px;
@@ -55,7 +55,7 @@
             font-weight: 500;
             font-size: 14px;
         }
-        
+
         input[type="text"],
         input[type="email"],
         select {
@@ -66,23 +66,23 @@
             font-size: 14px;
             transition: border-color 0.3s;
         }
-        
+
         input:focus,
         select:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .required {
             color: #dc3545;
         }
-        
+
         .button-group {
             display: flex;
             gap: 15px;
             margin-top: 30px;
         }
-        
+
         .btn {
             flex: 1;
             padding: 14px;
@@ -96,29 +96,36 @@
             text-align: center;
             display: inline-block;
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        
+
         .btn-secondary {
             background-color: #6c757d;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background-color: #5a6268;
         }
-        
+
         .info-text {
             font-size: 12px;
             color: #666;
+            margin-top: 5px;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            display: block;
             margin-top: 5px;
         }
     </style>
@@ -127,25 +134,21 @@
     <div class="container">
         <h1>
             <c:choose>
-                <c:when test="${student != null}">
-                    ✏️ Edit Student
-                </c:when>
-                <c:otherwise>
-                    ➕ Add New Student
-                </c:otherwise>
+                <c:when test="${student != null}">✏️ Edit Student</c:when>
+                <c:otherwise>➕ Add New Student</c:otherwise>
             </c:choose>
         </h1>
-        
+
         <form action="student" method="POST">
             <!-- Hidden field for action -->
             <input type="hidden" name="action" 
                    value="${student != null ? 'update' : 'insert'}">
-            
+
             <!-- Hidden field for ID (only for update) -->
             <c:if test="${student != null}">
                 <input type="hidden" name="id" value="${student.id}">
             </c:if>
-            
+
             <!-- Student Code -->
             <div class="form-group">
                 <label for="studentCode">
@@ -158,8 +161,11 @@
                        ${student != null ? 'readonly' : 'required'}
                        placeholder="e.g., SV001, IT123">
                 <p class="info-text">Format: 2 letters + 3+ digits</p>
+                <c:if test="${not empty errorCode}">
+                    <span class="error">${errorCode}</span>
+                </c:if>
             </div>
-            
+
             <!-- Full Name -->
             <div class="form-group">
                 <label for="fullName">
@@ -171,21 +177,26 @@
                        value="${student.fullName}"
                        required
                        placeholder="Enter full name">
+                <c:if test="${not empty errorName}">
+                    <span class="error">${errorName}</span>
+                </c:if>
             </div>
-            
+
             <!-- Email -->
             <div class="form-group">
                 <label for="email">
-                    Email <span class="required">*</span>
+                    Email
                 </label>
                 <input type="email" 
                        id="email" 
                        name="email" 
                        value="${student.email}"
-                       required
                        placeholder="student@example.com">
+                <c:if test="${not empty errorEmail}">
+                    <span class="error">${errorEmail}</span>
+                </c:if>
             </div>
-            
+
             <!-- Major -->
             <div class="form-group">
                 <label for="major">
@@ -210,23 +221,20 @@
                         Business Administration
                     </option>
                 </select>
+                <c:if test="${not empty errorMajor}">
+                    <span class="error">${errorMajor}</span>
+                </c:if>
             </div>
-            
+
             <!-- Buttons -->
             <div class="button-group">
                 <button type="submit" class="btn btn-primary">
                     <c:choose>
-                        <c:when test="${student != null}">
-                            💾 Update Student
-                        </c:when>
-                        <c:otherwise>
-                            ➕ Add Student
-                        </c:otherwise>
+                        <c:when test="${student != null}">💾 Update Student</c:when>
+                        <c:otherwise>➕ Add Student</c:otherwise>
                     </c:choose>
                 </button>
-                <a href="student?action=list" class="btn btn-secondary">
-                    ❌ Cancel
-                </a>
+                <a href="student?action=list" class="btn btn-secondary">❌ Cancel</a>
             </div>
         </form>
     </div>

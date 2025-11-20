@@ -32,14 +32,7 @@ public class StudentDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                Student student = new Student();
-                student.setId(rs.getInt("id"));
-                student.setStudentCode(rs.getString("student_code"));
-                student.setFullName(rs.getString("full_name"));
-                student.setEmail(rs.getString("email"));
-                student.setMajor(rs.getString("major"));
-                student.setCreatedAt(rs.getTimestamp("created_at"));
-                students.add(student);
+                students.add(mapResultSetToStudent(rs));
             }
             
         } catch (SQLException e) {
@@ -48,7 +41,26 @@ public class StudentDAO {
         
         return students;
     }
-    
+    // Get total number of students
+    public int getTotalStudents() {
+        String sql = "SELECT COUNT(*) AS total FROM students";
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                return rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+
     // Get student by ID
     public Student getStudentById(int id) {
         String sql = "SELECT * FROM students WHERE id = ?";
@@ -60,14 +72,7 @@ public class StudentDAO {
             ResultSet rs = pstmt.executeQuery();
             
             if (rs.next()) {
-                Student student = new Student();
-                student.setId(rs.getInt("id"));
-                student.setStudentCode(rs.getString("student_code"));
-                student.setFullName(rs.getString("full_name"));
-                student.setEmail(rs.getString("email"));
-                student.setMajor(rs.getString("major"));
-                student.setCreatedAt(rs.getTimestamp("created_at"));
-                return student;
+                return mapResultSetToStudent(rs);
             }
             
         } catch (SQLException e) {
@@ -89,8 +94,7 @@ public class StudentDAO {
             pstmt.setString(3, student.getEmail());
             pstmt.setString(4, student.getMajor());
             
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            return pstmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -111,8 +115,7 @@ public class StudentDAO {
             pstmt.setString(4, student.getMajor());
             pstmt.setInt(5, student.getId());
             
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            return pstmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -128,12 +131,156 @@ public class StudentDAO {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, id);
-            int rowsAffected = pstmt.executeUpdate();
-            return rowsAffected > 0;
+            return pstmt.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
+    }
+    
+    // Search students by keyword
+    public List<Student> searchStudents(String keyword) {
+        List<Student> students = new ArrayList<>();
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllStudents();
+        }
+        
+        String sql = "SELECT * FROM students " +
+                     "WHERE student_code LIKE ? OR full_name LIKE ? OR email LIKE ? " +
+                     "ORDER BY id DESC";
+        String pattern = "%" + keyword + "%";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, pattern);
+            pstmt.setString(2, pattern);
+            pstmt.setString(3, pattern);
+            
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    students.add(mapResultSetToStudent(rs));
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+    
+    // -------------------------------
+    // Exercise 7: Sorting & Filtering
+    public List<Student> getStudentsSorted(String sortBy, String order) {
+        List<Student> students = new ArrayList<>();
+        sortBy = validateSortBy(sortBy);
+        order = validateOrder(order);
+        
+        String sql = "SELECT * FROM students ORDER BY " + sortBy + " " + order;
+        
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                students.add(mapResultSetToStudent(rs));
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+    
+    public List<Student> getStudentsByMajor(String major) {
+        List<Student> students = new ArrayList<>();
+        String sql = "SELECT * FROM students WHERE major = ? ORDER BY id DESC";
+        
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, major);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    students.add(mapResultSetToStudent(rs));
+                }
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return students;
+    }
+    
+    // Bonus: combined filter + sort
+    public List<Student> getStudentsFiltered(String major, String sortBy, String order) {
+        List<Student> students = new ArrayList<>();
+        sortBy = validateSortBy(sortBy);
+        order = validateOrder(order);
+        String sql;
+        
+        if (major == null || major.trim().isEmpty()) {
+            sql = "SELECT * FROM students ORDER BY " + sortBy + " " + order;
+            try (Connection conn = getConnection();
+                 Statement stmt = conn.createStatement();
+                 ResultSet rs = stmt.executeQuery(sql)) {
+                
+                while (rs.next()) {
+                    students.add(mapResultSetToStudent(rs));
+                }
+                
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            sql = "SELECT * FROM students WHERE major = ? ORDER BY " + sortBy + " " + order;
+            try (Connection conn = getConnection();
+                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                
+                pstmt.setString(1, major);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        students.add(mapResultSetToStudent(rs));
+                    }
+                }
+                
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        return students;
+    }
+    
+    // -------------------------------
+    // Helper: map ResultSet to Student
+    private Student mapResultSetToStudent(ResultSet rs) throws SQLException {
+        Student student = new Student();
+        student.setId(rs.getInt("id"));
+        student.setStudentCode(rs.getString("student_code"));
+        student.setFullName(rs.getString("full_name"));
+        student.setEmail(rs.getString("email"));
+        student.setMajor(rs.getString("major"));
+        student.setCreatedAt(rs.getTimestamp("created_at"));
+        return student;
+    }
+    
+    // Validate sortBy parameter
+    private String validateSortBy(String sortBy) {
+        String[] validColumns = {"id", "student_code", "full_name", "email", "major"};
+        for (String col : validColumns) {
+            if (col.equalsIgnoreCase(sortBy)) return col;
+        }
+        return "id";
+    }
+    
+    // Validate order parameter
+    private String validateOrder(String order) {
+        if ("desc".equalsIgnoreCase(order)) return "DESC";
+        return "ASC";
     }
 }
