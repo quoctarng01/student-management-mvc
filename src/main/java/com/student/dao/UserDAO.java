@@ -2,8 +2,8 @@ package com.student.dao;
 
 import model.User;
 import org.mindrot.jbcrypt.BCrypt;
-
 import java.sql.*;
+
 
 public class UserDAO {
     
@@ -108,8 +108,25 @@ public class UserDAO {
         
         return user;
     }
-    
-    /**
+        public boolean updatePassword(int userId, String newHashedPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, newHashedPassword);
+            pstmt.setInt(2, userId);
+
+            return pstmt.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
+        /**
      * Get user by username
      */
     public User getUserByUsername(String username) {
@@ -132,6 +149,7 @@ public class UserDAO {
         
         return user;
     }
+
     
     /**
      * Create new user with hashed password
@@ -188,3 +206,4 @@ public class UserDAO {
         System.out.println("Verification: " + matches);
     }
 }
+

@@ -349,6 +349,45 @@
         </c:otherwise>
     </c:choose>
     <a href="export" class="btn btn-primary" style="margin-bottom:15px;">📥 Export to Excel</a>
+        <!-- TODO: Add navigation bar -->
+    <div class="navbar">
+        <h2>📚 Student Management System</h2>
+        <div class="navbar-right">
+            <div class="user-info">
+                <span>Welcome, ${sessionScope.fullName}</span>
+                <span class="role-badge role-${sessionScope.role}">
+                    ${sessionScope.role}
+                </span>
+            </div>
+            <a href="dashboard">Dashboard</a>
+            <a href="logout">Logout</a>
+        </div>
+    </div>
+
+    <!-- TODO: Show error from URL parameter -->
+    <c:if test="${not empty param.error}">
+        <div class="alert alert-error">
+            ${param.error}
+        </div>
+    </c:if>
+
+    <!-- TODO: Add button - Admin only -->
+    <c:if test="${sessionScope.role eq 'admin'}">
+        <a href="student?action=new">➕ Add New Student</a>
+    </c:if>
+
+    <!-- In table header -->
+    <c:if test="${sessionScope.role eq 'admin'}">
+        <th>Actions</th>
+    </c:if>
+
+    <!-- In table rows -->
+    <c:if test="${sessionScope.role eq 'admin'}">
+        <td>
+            <a href="student?action=edit&id=${student.id}">Edit</a>
+            <a href="student?action=delete&id=${student.id}">Delete</a>
+        </td>
+    </c:if>
 
     </div>
 </body>
